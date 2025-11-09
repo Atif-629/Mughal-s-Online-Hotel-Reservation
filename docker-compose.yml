@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  # Your Application Container Only
+  app:
+    build: .
+    container_name: hotel-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # MongoDB Atlas connection
+      ATLAS_DB_URL: ${ATLAS_DB_URL}
+      
+      # Cloudinary
+      CLOUDINARY_CLOUD_NAME: ${CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUD_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUD_API_SECRET}
+      
+      # Mapbox
+      MAPBOX_TOKEN: ${MAP_TOKEN}
+      
+      # Session
+      SESSION_SECRET: ${SECRET}
