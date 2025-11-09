@@ -10,7 +10,7 @@ services:
       - "3001:3000"
     volumes:
       - ./:/app
-    command: sh -c "npm install && node index.js"
+    command: sh -c "npm install --legacy-peer-deps && node index.js"
     environment:
       ATLAS_DB_URL: ${ATLAS_DB_URL}
       CLOUD_NAME: ${CLOUD_NAME}
