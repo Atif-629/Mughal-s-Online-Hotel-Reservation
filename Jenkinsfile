@@ -15,19 +15,17 @@ pipeline {
         
         stage('Stop Existing Containers') {
             steps {
-                 script {
+                script {
                     sh '''
-                        # Force stop and remove any containers with our names
-                        docker stop mughal-hotel-app-jenkins || true
-                        docker stop mughal-mongodb-jenkins || true
-                        docker rm mughal-hotel-app-jenkins || true
-                        docker rm mughal-mongodb-jenkins || true
-                        
-                        # Remove any orphaned networks
-                        docker network prune -f
-                        
-                        # Then run docker-compose down
+                        # Stop and remove any containers that might be running
                         docker-compose -f docker-compose-jenkins.yml down || true
+                        
+                        # Additional cleanup for any orphaned containers
+                        docker stop mughal-hotel-app-jenkins mughal-mongodb-jenkins 2>/dev/null || true
+                        docker rm mughal-hotel-app-jenkins mughal-mongodb-jenkins 2>/dev/null || true
+                        
+                        # Wait a moment for any prune operations to complete
+                        sleep 5
                     '''
                 }
             }
@@ -36,7 +34,6 @@ pipeline {
         stage('Build and Run Containers') {
             steps {
                 script {
-                    // Copy environment file and run with env variables
                     sh '''
                         cp .env.jenkins .env
                         docker-compose -f docker-compose-jenkins.yml up --build -d
@@ -51,9 +48,16 @@ pipeline {
                     sleep time: 20, unit: 'SECONDS'
                     sh '''
                         echo "Waiting for application to start..."
-                        # Try multiple times with timeout
-                        timeout 60s bash -c 'until curl -f http://localhost:3001/; do sleep 5; done'
-                        echo "Application is running successfully on port 3001"
+                        # Try multiple times with backoff
+                        for i in {1..10}; do
+                            if curl -f http://localhost:3001/; then
+                                echo "Application is running successfully on port 3001"
+                                exit 0
+                            fi
+                            sleep 5
+                        done
+                        echo "Application failed to start"
+                        exit 1
                     '''
                 }
             }
@@ -63,11 +67,11 @@ pipeline {
     post {
         always {
             echo 'Pipeline execution completed'
-            sh 'docker-compose -f docker-compose-jenkins.yml ps'
+            sh 'docker-compose -f docker-compose-jenkins.yml ps || true'
         }
         failure {
-            echo 'Pipeline failed - stopping containers'
-            sh 'docker-compose -f docker-compose-jenkins.yml down'
+            echo 'Pipeline failed'
+            sh 'docker-compose -f docker-compose-jenkins.yml down || true'
         }
     }
 }

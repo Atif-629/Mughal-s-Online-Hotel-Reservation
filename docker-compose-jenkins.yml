@@ -2,7 +2,7 @@ version: '3.8'
 services:
   web:
     image: node:18-alpine
-    container_name: mughal-hotel-app-${BUILD_NUMBER}
+    container_name: mughal-hotel-app-jenkins
     working_dir: /app
     restart: always
     ports:
@@ -18,7 +18,7 @@ services:
 
   mongodb:
     image: mongo:latest
-    container_name: mughal-mongodb-${BUILD_NUMBER}
+    container_name: mughal-mongodb-jenkins
     ports:
       - "27018:27017"
     volumes:
