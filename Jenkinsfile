@@ -13,15 +13,6 @@ pipeline {
             }
         }
         
-        stage('Load Environment') {
-            steps {
-                script {
-                    // Load environment variables from file
-                    loadEnvironmentFile('.env.jenkins')
-                }
-            }
-        }
-        
         stage('Stop Existing Containers') {
             steps {
                 script {
@@ -33,8 +24,9 @@ pipeline {
         stage('Build and Run Containers') {
             steps {
                 script {
+                    // Copy environment file and run with env variables
                     sh '''
-                        export $(cat .env.jenkins | xargs)
+                        cp .env.jenkins .env
                         docker-compose -f docker-compose-jenkins.yml up --build -d
                     '''
                 }
@@ -44,10 +36,11 @@ pipeline {
         stage('Health Check') {
             steps {
                 script {
-                    sleep time: 15, unit: 'SECONDS'
+                    sleep time: 20, unit: 'SECONDS'
                     sh '''
-                        echo "Checking if application is running..."
-                        curl -f http://localhost:3001/ || exit 1
+                        echo "Waiting for application to start..."
+                        # Try multiple times with timeout
+                        timeout 60s bash -c 'until curl -f http://localhost:3001/; do sleep 5; done'
                         echo "Application is running successfully on port 3001"
                     '''
                 }
@@ -63,19 +56,6 @@ pipeline {
         failure {
             echo 'Pipeline failed - stopping containers'
             sh 'docker-compose -f docker-compose-jenkins.yml down'
-        }
-    }
-}
-
-// Function to load environment file
-def loadEnvironmentFile(String filePath) {
-    def envVars = readFile(filePath).split('\n')
-    for (envVar in envVars) {
-        if (envVar.trim() && !envVar.trim().startsWith('#')) {
-            def keyValue = envVar.split('=', 2)
-            if (keyValue.size() == 2) {
-                env[keyValue[0].trim()] = keyValue[1].trim()
-            }
         }
     }
 }

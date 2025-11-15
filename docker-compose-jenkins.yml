@@ -11,13 +11,8 @@ services:
       - ./:/app
       - /app/node_modules
     command: sh -c "npm install --legacy-peer-deps && node index.js"
-    environment:
-      ATLAS_DB_URL: ${ATLAS_DB_URL}
-      CLOUD_NAME: ${CLOUD_NAME}
-      CLOUD_API_KEY: ${CLOUD_API_KEY}
-      CLOUD_API_SECRET: ${CLOUD_API_SECRET}
-      MAP_TOKEN: ${MAP_TOKEN}
-      SECRET: ${SECRET}
+    env_file:
+      - .env
     depends_on:
       - mongodb
 
