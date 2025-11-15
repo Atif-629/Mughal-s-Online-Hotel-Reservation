@@ -1,15 +1,15 @@
-version: "3.8"
-
+version: '3.8'
 services:
-  app-jenkins:
+  web:
     image: node:18-alpine
-    container_name: hotel-app-jenkins
+    container_name: mughal-hotel-app-jenkins
     working_dir: /app
     restart: always
     ports:
       - "3001:3000"
     volumes:
       - ./:/app
+      - /app/node_modules
     command: sh -c "npm install --legacy-peer-deps && node index.js"
     environment:
       ATLAS_DB_URL: ${ATLAS_DB_URL}
@@ -18,3 +18,16 @@ services:
       CLOUD_API_SECRET: ${CLOUD_API_SECRET}
       MAP_TOKEN: ${MAP_TOKEN}
       SECRET: ${SECRET}
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:latest
+    container_name: mughal-mongodb-jenkins
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
