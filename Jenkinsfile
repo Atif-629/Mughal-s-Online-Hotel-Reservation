@@ -15,8 +15,20 @@ pipeline {
         
         stage('Stop Existing Containers') {
             steps {
-                script {
-                    sh 'docker-compose -f docker-compose-jenkins.yml down || true'
+                 script {
+                    sh '''
+                        # Force stop and remove any containers with our names
+                        docker stop mughal-hotel-app-jenkins || true
+                        docker stop mughal-mongodb-jenkins || true
+                        docker rm mughal-hotel-app-jenkins || true
+                        docker rm mughal-mongodb-jenkins || true
+                        
+                        # Remove any orphaned networks
+                        docker network prune -f
+                        
+                        # Then run docker-compose down
+                        docker-compose -f docker-compose-jenkins.yml down || true
+                    '''
                 }
             }
         }
