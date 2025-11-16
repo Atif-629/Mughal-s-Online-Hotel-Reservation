@@ -1,4 +1,4 @@
-# 🏨 Mughal's Online Hotel Reservation
+ # 🏨 Mughal's Online Hotel Reservation
 
 A modern full-stack web application that allows users to add, manage, and review hotel listings. Built using Node.js, Express, MongoDB Atlas, Cloudinary, and Passport.js with MVC design architecture. Inspired by platforms like Airbnb, with additional user profile and map features.
 
